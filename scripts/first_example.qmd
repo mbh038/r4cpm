@@ -1,0 +1,36 @@
+---
+title: "Example script"
+format: html
+editor: visual
+---
+
+## Load packages
+
+```{r}
+library(tidyverse) # geberak workhorse
+library(here) # assists in finding files
+library(readxl) # read in data from an excel spreadsheet
+library(cowplot) # makes plots look nice
+library(janitor) # tidys up column names
+library(palmerpenguins)
+```
+
+## Load data
+
+```{r}
+filepath <- here("data", "difference_data.xlsx")
+penguins <- read_excel(filepath,"penguins")
+glimpse(penguins)
+```
+
+```{r}
+penguins |>
+  filter(sex == "female") |>
+  group_by(species) |>
+  summarise(mean.mass = mean(body_mass_g), sd.mass = sd(body_mass_g))
+```
+
+```{r}
+
+```
+
