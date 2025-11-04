@@ -1,0 +1,69 @@
+---
+title: "Tidy and untidy data"
+author: "Michael Hunt"
+date: "03/§§/25"
+format: html
+editor: visual
+---
+
+For this script you will need the `untidy_penguins.csv` data set. Make sure that this is in your data subfolder within your project folder.
+
+## Load packages
+
+```{r}
+library(tidyverse) # general workhorse
+library(here) # assists in finding files
+library(cowplot) # makes plots look nice
+```
+
+## Load untidy data
+```{r}
+filepath <- here("data","untidy_penguins.csv") 
+untidy_penguins <- read_csv(filepath)
+glimpse(untidy_penguins)
+```
+
+We see that we have 30 rows of data, spread across 3 columns. If we look at the first rows of data:
+
+```{r}
+head(untidy_penguins)
+```
+
+we see that the body mass variable is spread over 3 columns. If you try ot summarise these data or plot them by species, you will find it difficult.  That is because the same variable (in this case body mass) is spread over more than one column. 
+
+To do all the summarising and plotting we would like to do, we need to tidy the data. That means here that we we want one column for species and another for body mass. In general, in tidy data, each variable occupies one column, and each observation occupies one row. In our untidy data set, body mass is spread acorss three columns.
+
+We can tidy our data set with the `pivot_longer()` function
+
+```{r}
+tidy_penguins <- untidy_penguins |>
+  pivot_longer(1:3, names_to = "species", values_to = "body_mass_g")
+glimpse(tidy_penguins)
+```
+
+Tidy data is often longer and thinner than the same data arranged in an untidy way. Now we have 90 rows and only 2 columns whereas to start with we had 30 only 30 rows spread over 3 columns.
+
+The great advantage of having the data in this form is that now we can plot and summarise by species.
+
+For example, let's calculate the sample size, mean mass and standard deviation of the mass for each species:
+
+```{r}
+tidy_penguins |>
+  group_by(species) |> # we could not do this with untidy data
+  summarise(n = n(), mean.mass = mean(body_mass_g), sd.mass = sd(body_mass_g))
+  
+```
+
+and let's plot the data as a box plot, one box per species
+
+```{r}
+tidy_penguins |>
+  ggplot(aes(x = species, y = body_mass_g)) +
+  geom_boxplot() +
+  labs(x = "Species",
+       y = "Body mass (g)") +
+  theme_cowplot()
+```
+
+
+Neither the summary nor the plot would be possible with the untidy data set. 

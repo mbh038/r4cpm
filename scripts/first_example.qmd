@@ -1,18 +1,25 @@
 ---
 title: "Example script"
+author: "Michael Hunt"
+date: "21/10/2025"
+toc: true
 format: html
 editor: visual
 ---
 
+## Introduction
+My first script ......
+
+
 ## Load packages
 
 ```{r}
-library(tidyverse) # geberak workhorse
+library(tidyverse) # general workhorse
 library(here) # assists in finding files
 library(readxl) # read in data from an excel spreadsheet
 library(cowplot) # makes plots look nice
 library(janitor) # tidys up column names
-library(palmerpenguins)
+library(palmerpenguins) # contains two real penguin data sets, for practice
 ```
 
 ## Load data
@@ -22,15 +29,135 @@ filepath <- here("data", "difference_data.xlsx")
 penguins <- read_excel(filepath,"penguins")
 glimpse(penguins)
 ```
+### Summarise data
+
+```{r}
+females_mass <- penguins |>
+  filter(sex == "female") |>
+  group_by(species) |>
+  summarise(n = n(), mean.mass = mean(body_mass_g), sd.mass = sd(body_mass_g))
+females_mass
+```
+
+### Plot data
+
+**Bar chart**:
+
+```{r}
+females_mass |>
+  ggplot(aes(x = species, y = mean.mass, fill = species)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = mean.mass - sd.mass, ymax = mean.mass + sd.mass), width = 0.15) +
+  geom_text(aes(label = paste0("n = ",n)), y = 0, vjust = -0.5, hjust = 0.5) +
+  labs(x = "Species",
+       y = " Mean mass (g)") +
+  scale_fill_brewer(palette = "Set2") +
+  theme_cowplot() +
+  theme(legend.position = "none")
+  
+```
+* Note that we have added a label to each bar to show the sample size.
+* Does a bar chart show the distribution of the data?
+* In a caption, we should say what the error bars show: standard deviation, standard error or confidence interval. What are the ones in the figure above. When would you use each type?
+
+
+**Box plot**:
 
 ```{r}
 penguins |>
   filter(sex == "female") |>
-  group_by(species) |>
-  summarise(mean.mass = mean(body_mass_g), sd.mass = sd(body_mass_g))
+  ggplot(aes(x = species, y = body_mass_g, fill = species)) +
+  geom_boxplot() +
+  # geom_jitter(width=0.2, alpha = 0.5) +
+  labs(x = "Species",
+       y = " Body mass (g)") +
+  scale_fill_brewer(palette = "Set2") +
+  theme_cowplot() +
+  theme(legend.position = "none") # include this line becuase we don't need the legend.
+  
 ```
+
+* Do you know what is shown by the box, the whiskers and the dots for each species?
+* Try uncommenting the `geom_jitter()` line. DOes that improve the plot?
+* Instead, try a violin plot, using `geom_violin()`
+* Try other colour palettes from [here](https://r-graph-gallery.com/38-rcolorbrewers-palettes.html)
+
+**Histograms**:
 
 ```{r}
-
+penguins |>
+  filter(sex == "female") |> # filter down to just the females.
+  ggplot(aes(x  = body_mass_g, fill = species)) +
+  geom_histogram() +
+  labs(x = " Body mass (g)",
+       y = "Frequency") +
+  scale_y_continuous(breaks = c(0,5,10)) +
+  scale_fill_brewer(palette = "Set2") +
+  facet_wrap(~species, ncol = 1) + 
+  theme_cowplot() +
+  theme(legend.position = "none")
+  
 ```
 
+* Note the use of the `facet_wrap()` line for getting the same plot for each species.
+* Try varying the binwidth or the number of bins. 
+* Try other colour palettes from [here](https://r-graph-gallery.com/38-rcolorbrewers-palettes.html)
+
+**Scatter plots**
+
+These are for when both variables being plotted are continuous.
+
+```{r}
+penguins |>
+  filter(sex == "female") |> # filter down to just the females.
+  filter(species == "Adelie") |>
+  ggplot(aes(x = bill_depth_mm, y = bill_length_mm)) +
+  geom_point() +
+  labs(x = "Bill depth (mm)",
+       y = "Bill length (mm)") +
+  theme_cowplot()
+```
+* Is there an association between bill depth and bill length?
+* Is it positive or negative, weak or strong?
+* How could we quantify it? Hint : use linear regression, or correlation.
+
+** Scatter plot with all three species**
+
+If we hadn't filter down to just the Adelie penguins and had done the plot as before we would have got this:
+
+```{r}
+penguins |>
+  filter(sex == "female") |> # filter down to just the females.
+  ggplot(aes(x = bill_depth_mm, y = bill_length_mm)) +
+  geom_point() +
+  labs(x = "Bill depth (mm)",
+       y = "Bill length (mm)") +
+  theme_cowplot()
+```
+This doesn't distingish between the species and is not very helpful. We can show the species in at least two ways:
+
+*Map colour to species within the aesthetic*
+
+```{r}
+penguins |>
+  filter(sex == "female") |> # filter down to just the females.
+  ggplot(aes(x = bill_depth_mm, y = bill_length_mm, colour = species)) +
+  geom_point() +
+  labs(x = "Bill depth (mm)",
+       y = "Bill length (mm)",
+       colour = "Species") +
+  theme_cowplot()
+```
+
+*Do a facet_wrap()` on species*:
+
+```{r}
+penguins |>
+  filter(sex == "female") |> # filter down to just the females
+  ggplot(aes(x = bill_depth_mm, y = bill_length_mm)) +
+  geom_point() +
+  labs(x = "Bill depth (mm)",
+       y = "Bill length (mm)") +
+  facet_wrap(~species, scale = "fixed") + # try "free", "free_x" or "free_y"
+  theme_cowplot()
+```
