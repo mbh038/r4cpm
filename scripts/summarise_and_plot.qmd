@@ -47,7 +47,7 @@ females_mass
 females_mass |>
   ggplot(aes(x = species, y = mean.mass, fill = species)) +
   geom_col() +
-  geom_errorbar(aes(ymin = mean.mass - sd.mass, ymax = mean.mass + sd.mass), width = 0.15) +
+  geom_errorbar(aes(ymin = mean.mass - sd.mass, ymax = mean.mass + sd.mass),width=0.15) +
   geom_text(aes(label = paste0("n = ",n)), y = 0, vjust = -0.5, hjust = 0.5) +
   labs(x = "Species",
        y = " Mean mass (g)") +
@@ -67,7 +67,7 @@ females_mass |>
 penguins |>
   filter(sex == "female") |>
   ggplot(aes(x = species, y = body_mass_g, fill = species)) +
-  geom_boxplot() +
+  geom_violin() +
   # geom_jitter(width=0.2, alpha = 0.5) +
   labs(x = "Species",
        y = " Body mass (g)") +
